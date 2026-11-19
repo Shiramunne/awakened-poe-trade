@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import OverlayWindow from './overlay/OverlayWindow.vue'
+import './themes/carbon-glass-compact.css'
 </script>
 
 <style lang="postcss">

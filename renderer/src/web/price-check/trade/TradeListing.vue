@@ -14,7 +14,7 @@
       <trade-links v-if="list"
         :get-link="makeTradeLink" />
     </div>
-    <div class="layout-column overflow-y-auto overflow-x-hidden">
+    <div class="layout-column overflow-y-auto overflow-x-hidden" @scroll="hover.hideImmediately">
       <table class="table-stripped w-full">
         <thead>
           <tr class="text-left">
@@ -43,12 +43,18 @@
             </th>
           </tr>
         </thead>
-        <tbody style="overflow: scroll;">
+        <tbody style="overflow: scroll;" @mouseleave="hover.hideImmediately">
           <template v-for="(result, idx) in groupedResults">
-            <tr v-if="!result" :key="idx">
+            <tr v-if="!result" :key="idx" @mouseenter="hover.hideImmediately">
               <td colspan="100" class="text-transparent">***</td>
             </tr>
-            <tr v-else :key="result.id">
+            <tr
+              v-else
+              :key="result.id"
+              :class="$style.resultRow"
+              @mouseenter="hover.onRowEnter(result.hoverItem, $event)"
+              @mouseleave="hover.onRowLeave"
+            >
               <td class="px-2 whitespace-nowrap">
                 <span :class="{ 'line-through': result.priceCurrency === 'exalted' }">{{ result.priceAmount }} {{ result.priceCurrency }}</span>
                 <span v-if="result.listedTimes > 2" class="rounded px-1 text-gray-800 bg-gray-400 ml-1 -mr-2"><span class="font-sans">×</span> {{ result.listedTimes }}</span>
@@ -77,6 +83,12 @@
         </tbody>
       </table>
     </div>
+    <trade-hover-card
+      :item="hover.activeItem.value"
+      :anchor-rect="hover.anchorRect.value"
+      :panel-rect="hover.panelRect.value"
+      :teleport-target="hover.teleportTarget.value"
+    />
   </div>
   <ui-error-box v-else>
     <template #name>{{ t(':error') }}</template>
@@ -102,6 +114,7 @@ import { ParsedItem } from '@/parser'
 import { artificialSlowdown } from './artificial-slowdown'
 import OnlineFilter from './OnlineFilter.vue'
 import TradeLinks from './TradeLinks.vue'
+import { TradeHoverCard, useHoverItem } from '../hover-item'
 
 const slowdown = artificialSlowdown(900)
 
@@ -207,7 +220,7 @@ function useTradeApi () {
 }
 
 export default defineComponent({
-  components: { OnlineFilter, TradeLinks, UiErrorBox },
+  components: { OnlineFilter, TradeLinks, UiErrorBox, TradeHoverCard },
   emits: ['reset'],
   props: {
     filters: {
@@ -241,9 +254,11 @@ export default defineComponent({
     }
 
     const { t } = useI18nNs('trade_result')
+    const hover = useHoverItem(() => groupedResults.value)
 
     return {
       t,
+      hover,
       list: searchResult,
       groupedResults: computed(() => {
         if (!slowdown.isReady.value) {
@@ -320,5 +335,9 @@ export default defineComponent({
   @apply border border-gray-600 bg-gray-700;
   text-wrap-style: balance;
   text-align: center;
+}
+
+.resultRow:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 </style>

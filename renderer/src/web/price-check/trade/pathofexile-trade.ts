@@ -9,6 +9,7 @@ import { decodeFamilyFromSource as decodeMercenarySupports, SearchMode as MercSe
 import { RateLimiter } from './RateLimiter'
 import { ModifierType } from '@/parser/modifiers'
 import { Cache } from './Cache'
+import { extractHoverItem, TradeHoverItem, RawTradeApiItem, RawTradeApiListing } from '../hover-item'
 
 export const CATEGORY_TO_TRADE_ID = new Map([
   [ItemCategory.Map, 'map'],
@@ -223,30 +224,8 @@ export interface SearchResult {
 
 interface FetchResult {
   id: string
-  item: {
-    ilvl?: number
-    stackSize?: number
-    corrupted?: boolean
-    properties?: Array<{
-      values: [[string, number]]
-      type:
-      78 | // Corpse Level (Filled Coffin)
-      30 | // Spawns a Level %0 Monster when Harvested
-      6 | // Quality
-      5 // Level
-    }>
-    note?: string
-  }
-  listing: {
-    indexed: string
-    price?: {
-      amount: number
-      currency: string
-      type: '~price'
-    }
-    fee?: number
-    account: Account
-  }
+  item: RawTradeApiItem
+  listing: RawTradeApiListing & { account: Account }
 }
 
 export interface PricingResult {
@@ -265,6 +244,7 @@ export interface PricingResult {
   accountName: string
   accountStatus: 'offline' | 'online' | 'afk'
   ign: string
+  hoverItem?: TradeHoverItem
 }
 
 export function createTradeRequest (filters: ItemFilters, stats: FilterOrGroup[]) {
@@ -833,6 +813,7 @@ export async function requestResults (
   }
 
   return data.map<PricingResult>(result => {
+    const relativeDate = DateTime.fromISO(result.listing.indexed).toRelative({ style: 'short' }) ?? ''
     return {
       id: result.id,
       itemLevel: result.item.properties?.find(prop => prop.type === 78)?.values[0][0] ?? String(result.item.ilvl),
@@ -840,7 +821,7 @@ export async function requestResults (
       corrupted: result.item.corrupted,
       quality: result.item.properties?.find(prop => prop.type === 6)?.values[0][0],
       level: result.item.properties?.find(prop => prop.type === 5)?.values[0][0],
-      relativeDate: DateTime.fromISO(result.listing.indexed).toRelative({ style: 'short' }) ?? '',
+      relativeDate,
       priceAmount: result.listing.price?.amount ?? 0,
       priceCurrency: result.listing.price?.currency ?? 'no price',
       hasNote: result.item.note != null,
@@ -852,7 +833,8 @@ export async function requestResults (
         ? 'online'
         : result.listing.account.online
           ? (result.listing.account.online.status === 'afk' ? 'afk' : 'online')
-          : 'offline'
+          : 'offline',
+      hoverItem: extractHoverItem(result.item, result.listing, result.id, relativeDate)
     }
   })
 }
