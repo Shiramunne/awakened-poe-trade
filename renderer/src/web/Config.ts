@@ -7,6 +7,7 @@ import type { StashSearchWidget } from './stash-search/widget'
 import type { ItemCheckWidget } from './item-check/widget'
 import type { ItemSearchWidget } from './item-search/widget'
 import { registry as widgetRegistry } from './overlay/widget-registry.js'
+import { ThemeConfig, applyThemeConfig, normalizeThemeConfig } from './themes/theme'
 
 const _config = shallowRef<Config | null>(null)
 let _lastSavedConfig: Config | null = null
@@ -24,6 +25,7 @@ export function AppConfig (type?: string) {
 export function updateConfig (updates: Config) {
   _config.value = deepReactive(JSON.parse(JSON.stringify(updates)))
   document.documentElement.style.fontSize = `${_config.value!.fontSize}px`
+  applyThemeConfig(normalizeThemeConfig(_config.value!.theme))
 }
 
 export function saveConfig (opts?: { isTemporary: boolean }) {
@@ -120,6 +122,7 @@ export interface Config {
   widgets: widget.Widget[]
   fontSize: number
   showAttachNotification: boolean
+  theme?: ThemeConfig
 }
 
 export const defaultConfig = (): Config => ({
@@ -164,6 +167,7 @@ export const defaultConfig = (): Config => ({
   realm: 'pc-ggg',
   useIntlSite: false,
   fontSize: 16,
+  theme: normalizeThemeConfig(),
   widgets: widgetRegistry.widgets.reduce<widget.Widget[]>((widgets, { widget }) => {
     const res: widget.Widget[] = []
     if (widget.instances === 'single') {
@@ -436,6 +440,8 @@ function upgradeConfig (_config: Config): Config {
     config.configVersion = 18
   }
   /* eslint-enable */
+
+  config.theme = normalizeThemeConfig(config.theme)
 
   return config as unknown as Config
 }

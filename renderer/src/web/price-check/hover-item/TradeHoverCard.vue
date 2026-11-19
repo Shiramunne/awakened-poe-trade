@@ -529,8 +529,8 @@ export default defineComponent({
   width: max-content;
   min-width: 19.5rem;
   max-width: 30rem;
-  background: rgba(10, 12, 16, 0.95);
-  backdrop-filter: blur(10px);
+  background: var(--apt-hover-bg, #0c0e13);
+  backdrop-filter: var(--apt-hover-blur, none);
   border: 1px solid var(--poe-border, #5a5245);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.86), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   border-radius: 4px;
