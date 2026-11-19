@@ -1,21 +1,23 @@
 <template>
   <div class="p-2 flex flex-col h-full items-center">
-    <div class="flex flex-col items-center p-2 mb-4">
+    <div class="flex flex-col items-center p-2 mb-2">
       <img class="w-12 h-12" src="/images/TransferOrb.png">
       <p class="text-base">Awakened PoE Trade</p>
       <p class="">{{ t('app.version', [version]) }}</p>
       <div class="flex gap-2">
-        <a class="border-b" href="https://github.com/SnosMe/awakened-poe-trade/releases" target="_blank">{{ t('app.release_notes') }}</a>
-        <a class="border-b" href="https://github.com/SnosMe/awakened-poe-trade/issues" target="_blank">{{ t('app.report_bug') }}</a>
+        <a class="border-b" href="https://github.com/Shiramunne/awakened-poe-trade/releases" target="_blank">{{ t('app.release_notes') }}</a>
+        <a class="border-b" href="https://github.com/SnosMe/awakened-poe-trade/releases" target="_blank">Original (SnosMe)</a>
       </div>
     </div>
-    <div class="border border-gray-600 rounded p-2 whitespace-nowrap min-w-min w-72">
+    <div class="border border-gray-600 rounded p-3 whitespace-nowrap min-w-min w-80 space-y-1">
+      <div class="text-xs font-semibold text-gray-200">Atualização do Programa (Seu Fork)</div>
       <p>{{ info.str1 }}</p>
-      <p>{{ info.str2 }}</p>
+      <p class="text-xs text-gray-400">{{ info.str2 }}</p>
       <button v-if="info.action" @click="info.action"
         class="btn w-full mt-1">{{ info.actionText }}</button>
     </div>
-    <div class="text-center mt-auto py-8">
+    <upstream-sync-card class="mt-2.5" />
+    <div class="text-center mt-auto py-3">
       <p>{{ t('app.contact_me') }} <br><span class="font-sans text-gray-500 select-all">&lt;@295216259795124225&gt;</span></p>
       <ul class="flex gap-4">
         <li><img class="rounded inline" src="/images/dc_tft.gif"> <a class="border-b" href="https://discord.gg/tftrove" target="_blank">The Forbidden Trove</a></li>
@@ -30,6 +32,7 @@ import { defineComponent, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Host } from '@/web/background/IPC'
 import { DateTime } from 'luxon'
+import UpstreamSyncCard from './UpstreamSyncCard.vue'
 
 function checkForUpdates () {
   Host.sendEvent({
@@ -39,7 +42,7 @@ function checkForUpdates () {
 }
 
 function openDownloadPage () {
-  window.open('https://snosme.github.io/awakened-poe-trade/download')
+  window.open('https://github.com/Shiramunne/awakened-poe-trade/releases')
 }
 
 function quitAndInstall () {
@@ -55,6 +58,7 @@ function fmtTime (millis: number) {
 
 export default defineComponent({
   name: 'settings.about',
+  components: { UpstreamSyncCard },
   inheritAttrs: false,
   setup () {
     const { t } = useI18n()
